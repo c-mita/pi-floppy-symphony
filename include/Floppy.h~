@@ -7,14 +7,13 @@ class Floppy
         Floppy( int pStep, int pDuration );
         void Reset();
         void Tone( float frequency, int duration );
-        void Switch();
+        void Pulse()
     private:
         int pinStep;
         int pinDir;
         int position;
         int maxPosition;
         bool direction;
-        bool on;
 };
 
 

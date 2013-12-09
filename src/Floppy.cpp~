@@ -1,4 +1,4 @@
-#include "Floppy.h"
+#include "floppy.h"
 #include <time.h>
 #include <wiringPi.h>
 
@@ -37,22 +37,18 @@ void Floppy::Reset()
     direction = true;
 }
 
-void Floppy::Switch()
+void Floppy::Pulse()
 {
-    if (on) {
-        digitalWrite( pinStep, LOW );
-        position += direction ? 1 : -1;
-        if ( direction && (maxPosition <= position) ) {
-            direction = false;
-            digitalWrite( pinDir, LOW );
-        } else if ( (!direction) && (0 == position) ) {
-            direction = true;
-            digitalWrite( pinDir, HIGH );
-        }
-    } else {
-        digitalWrite( pinStep, HIGH );
+    digitalWrite( pinStep, HIGH );
+    digitalWrite( pinStep, LOW );
+    position += direction ? 1 : -1;
+    if ( direction && (maxPosition <= position) ) {
+        direction = false;
+        digitalWrite( pinDir, LOW );
+    } else if ( (!direction) && (0 == position) ) {
+        direction = true;
+        digitalWrite( pinDir, HIGH );
     }
-    on = !on;
 }
 
 void Floppy::Tone( float frequency, int duration )

@@ -15,3 +15,10 @@
 # Misc files
 *.mid
 *.midi
+
+# Executables
+*.exe
+*.out
+*.app
+
+bin/

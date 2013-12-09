@@ -11,7 +11,7 @@ enum eventType{
 
 struct midiEvent{
     const int value;
-    const eventType type;
+    const eventType;
     const int delay;
 };
 
