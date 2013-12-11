@@ -1,7 +1,6 @@
 #include <initializer_list>
 #include "Floppy.h"
 #include "Midi.h"
-#include <time.h>
 #include <thread>
 #include <pthread.h>
 #include "FloppyPlayer.h"
@@ -34,8 +33,10 @@ FloppyPlayer::~FloppyPlayer()
     }
 }
 
-void FloppyPlayer::Play( std::vector< midiEvent >* track )
+void FloppyPlayer::Play( MidiFile* midiData )
 {
+    std::vector< midiEvent >* track = &(midiData->events);
+    printf("Events: %d\n", track->size());
     finished = false;
     timespec delay;
     std::thread threadLoop( &FloppyPlayer::MidiLoop, this );
@@ -48,16 +49,22 @@ void FloppyPlayer::Play( std::vector< midiEvent >* track )
         instance->floppy->Reset();
         instance->floppy->Tone( 440.0, 1000 );
     }
+    
+    tempoValue = 500000;
     for ( auto event = track->begin(); event != track->end(); event++ ) {
-        delay.tv_sec = event->delay / 1000000;
-        delay.tv_nsec = ((event->delay) % 1000000) * 1000;
-        nanosleep( &delay, NULL );
-        printf( "delay = %d\t%d\tperiod = %d\n", delay.tv_sec, delay.tv_nsec, notePeriods[event->value] );
+        int delta = event->deltaDelay * tempoValue;
+        delta /= (midiData->clockRate);
+        delay.tv_sec = delta / 1000000;
+        delay.tv_nsec = (delta % 1000000) * 1000;
+        if (delay.tv_sec != 0 || delay.tv_nsec != 0 ) nanosleep( &delay, NULL );
+        /*printf( "delay = %d\t%d\tperiod = %d\n",
+            delay.tv_sec, delay.tv_nsec, notePeriods[event->value] );*/
         switch ( event->type ) {
         case NOTE_DOWN:
             for ( int i = 0; i < floppies.size(); i++ ) {
                 if ( !floppies[i].playing ) {
                     floppies[i].period = notePeriods[event->value];
+                    floppies[i].note = event->value;
                     floppies[i].playing = true;
                     break;
                 }
@@ -70,6 +77,8 @@ void FloppyPlayer::Play( std::vector< midiEvent >* track )
                 }
             }
             break; 
+        case TEMPO:
+            tempoValue = event->value;
         }
     }
     finished = true;
